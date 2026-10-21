@@ -1,0 +1,43 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Media Recommendation System</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
+</head>
+<body>
+    <header class="header">
+        <h1>Social Feed</h1>
+        <p>Explore content based on your interests</p>
+    </header>
+
+    <main class="container">
+        <section class="feed-section">
+            <div class="section-heading">
+                <h2>Recommended For You</h2>
+                <button id="refresh-btn" type="button">Refresh Feed</button>
+            </div>
+
+            <div id="feed" class="feed"></div>
+
+            <div id="load-trigger" class="load-trigger" aria-hidden="true"></div>
+
+            <p id="loading-status" class="loading-status" role="status" aria-live="polite"></p>
+        </section>
+
+        <aside class="sidebar">
+            <h2>Your Preferences</h2>
+            <p>Adjust the content you want to see.</p>
+
+            <div id="preferences"></div>
+
+            <button id="reset-btn" type="button">Reset Preferences</button>
+        </aside>
+    </main>
+
+    <div id="message" class="message" role="status" aria-live="polite"></div>
+</body>
+</html>
