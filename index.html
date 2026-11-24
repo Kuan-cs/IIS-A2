@@ -1,43 +1,318 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Social Media Recommendation System</title>
+    <meta name="color-scheme" content="light dark">
+    <title>Social — Your personalised feed</title>
+
     <link rel="stylesheet" href="style.css">
+
+    <script src="data.js" defer></script>
+    <script src="state.js" defer></script>
+    <script src="storage.js" defer></script>
+    <script src="inference.js" defer></script>
+    <script src="recommendation.js" defer></script>
+    <script src="feed.js" defer></script>
+    <script src="ui.js" defer></script>
+    <script src="visit.js" defer></script>
     <script src="script.js" defer></script>
 </head>
+
 <body>
     <header class="header">
-        <h1>Social Feed</h1>
-        <p>Explore content based on your interests</p>
+        <div class="header-inner">
+            <a class="brand" href="#top" aria-label="Social home">
+                social<span>.</span>
+            </a>
+
+            <nav class="header-nav" aria-label="Main navigation">
+                <a href="#feed-section">Feed</a>
+                <a href="#profile-section">Your interests</a>
+            </nav>
+
+            <span class="prototype-label">Interactive prototype</span>
+        </div>
     </header>
 
-    <main class="container">
-        <section class="feed-section">
+    <main class="container" id="top">
+
+        <section class="feed-section" id="feed-section">
             <div class="section-heading">
-                <h2>Recommended For You</h2>
-                <button id="refresh-btn" type="button">Refresh Feed</button>
+                <div>
+                    <p class="eyebrow">Your feed</p>
+                    <h2 class="page-title">For you.</h2>
+                    <p class="section-description">
+                        Discover more of what interests you.
+                    </p>
+                </div>
+
+                <button id="refresh-btn" class="secondary-btn refresh-btn">
+                    ↻ Refresh
+                </button>
             </div>
 
-            <div id="feed" class="feed"></div>
+            <div id="feed"></div>
 
-            <div id="load-trigger" class="load-trigger" aria-hidden="true"></div>
+            <button id="load-more-btn" class="secondary-btn">
+                Load more
+            </button>
 
-            <p id="loading-status" class="loading-status" role="status" aria-live="polite"></p>
+            <div id="load-trigger" aria-hidden="true"></div>
+
+            <p id="loading-status" role="status"></p>
         </section>
 
-        <aside class="sidebar">
-            <h2>Your Preferences</h2>
-            <p>Adjust the content you want to see.</p>
+        <aside class="sidebar" id="profile-section">
 
-            <div id="preferences"></div>
+            <div class="profile-heading">
+                <div>
+                    <p class="eyebrow">Personalisation</p>
+                    <h2>Your interests</h2>
+                </div>
 
-            <button id="reset-btn" type="button">Reset Preferences</button>
+                <span id="save-status" class="save-status" role="status">
+                    Session only
+                </span>
+            </div>
+
+            <div class="learning-panel">
+                <label class="switch-label">
+                    <span>Auto-learning</span>
+
+                    <input id="auto-inference" type="checkbox" checked>
+
+                    <span class="switch"></span>
+                </label>
+
+                <span id="learning-state" class="state-label">On</span>
+            </div>
+
+            <details class="help-details learning-help">
+                <summary>How does learning work?</summary>
+
+                <div class="rule-row">
+                    <span>First visit</span>
+                    <strong>+10</strong>
+                </div>
+
+                <div class="rule-row">
+                    <span>First visit · 15s</span>
+                    <strong>+5</strong>
+                </div>
+
+                <div class="rule-row">
+                    <span>Return after 60s</span>
+                    <strong>+3</strong>
+                </div>
+
+                <div class="rule-row">
+                    <span>Return visit · 15s</span>
+                    <strong>+2</strong>
+                </div>
+
+                <div class="rule-row">
+                    <span>Return within 60s</span>
+                    <strong>0</strong>
+                </div>
+
+                <p>
+                    Viewing signals are assumptions, not proof of interest.
+                    Repeat visits have a 60-second cooldown after closing.
+                    Locked categories cannot change automatically.
+                    You can exclude or include a visit's contribution.
+                </p>
+            </details>
+
+            <section id="latest-change" class="latest-change" hidden>
+                <div class="latest-heading">
+                    <span>Latest adjustment</span>
+                    <strong id="latest-category"></strong>
+                </div>
+
+                <div id="latest-values" class="latest-values"></div>
+
+                <div id="latest-reason"></div>
+
+                <button id="quick-undo" class="secondary-btn" hidden>
+                    Exclude this visit
+                </button>
+            </section>
+
+            <nav class="profile-tabs" aria-label="Profile sections">
+                <button class="tab-btn active"
+                    data-panel="preferences-panel"
+                    aria-pressed="true">
+                    Interests
+                </button>
+
+                <button class="tab-btn"
+                    data-panel="distribution-panel"
+                    aria-pressed="false">
+                    Distribution
+                </button>
+
+                <button class="tab-btn"
+                    data-panel="history-panel"
+                    aria-pressed="false">
+                    Activity
+                </button>
+            </nav>
+
+            <section id="preferences-panel" class="profile-panel">
+                <div class="panel-heading">
+                    <span>Interest weights</span>
+                    <span>0–100</span>
+                </div>
+
+                <div id="preferences"></div>
+
+                <p class="small-note">
+                    Locked interests can still be adjusted manually.
+                </p>
+
+                <button id="unlock-all-btn" class="secondary-btn">
+                    Unlock all interests
+                </button>
+            </section>
+
+            <section id="distribution-panel" class="profile-panel" hidden>
+                <div class="panel-heading">
+                    <span>Recommendation distribution</span>
+                </div>
+
+                <div id="distribution"></div>
+
+                <details class="help-details">
+                    <summary>About these percentages</summary>
+
+                    <p>
+                        Selection chances before recent-post filtering.
+                        Actual recommendation frequencies may vary.
+                    </p>
+                </details>
+            </section>
+
+            <section id="history-panel" class="profile-panel" hidden>
+                <div class="history-legend">
+                    <span class="automatic-label">Automatic</span>
+                    <span class="explicit-label">Manual</span>
+                    <span class="correction-label">Correction</span>
+                </div>
+
+                <label for="history-filter" class="small-note">
+                    Filter by interest
+                </label>
+
+                <select id="history-filter">
+                    <option value="all">All categories</option>
+                </select>
+
+                <div id="history"></div>
+            </section>
+
+            <div class="profile-footer">
+                <p>Changes apply to future recommendations.</p>
+
+                <button id="apply-btn">
+                    Refresh feed
+                    <span aria-hidden="true">↗</span>
+                </button>
+
+                <button id="reset-btn" class="secondary-btn">
+                    Reset preferences
+                </button>
+
+                <details class="help-details">
+                    <summary>Data and privacy</summary>
+
+                    <p>
+                        Preferences, settings, history and visit times are
+                        stored in this browser. No data is sent to a server.
+                        Reset preferences clears these records.
+                    </p>
+                </details>
+            </div>
+
         </aside>
     </main>
 
-    <div id="message" class="message" role="status" aria-live="polite"></div>
+    <dialog id="post-detail" aria-labelledby="detail-title">
+
+        <div class="detail-header">
+            <span id="detail-category" class="category-label"></span>
+
+            <button id="close-detail"
+                class="close-btn"
+                aria-label="Close post">
+                ×
+            </button>
+        </div>
+
+        <h2 id="detail-title"></h2>
+
+        <div id="detail-image" class="post-image" aria-hidden="true"></div>
+
+        <div id="detail-content"></div>
+
+        <section id="reading-panel" class="reading-panel">
+            <div class="reading-heading">
+                <span>Reading activity</span>
+                <strong id="reading-time">0 / 15s</strong>
+            </div>
+
+            <progress id="reading-progress"
+                value="0"
+                max="15"
+                aria-label="Viewing time">
+            </progress>
+
+            <p id="reading-status" role="status"></p>
+        </section>
+
+        <button id="detail-undo" class="secondary-btn" hidden>
+            Exclude this visit
+        </button>
+
+        <p class="detail-note">
+            You decide what contributes to your interests.
+        </p>
+
+        <button id="back-to-feed" class="secondary-btn">
+            ← Back to feed
+        </button>
+
+    </dialog>
+
+    <dialog id="preference-detail"
+        aria-labelledby="preference-detail-title">
+
+        <div class="detail-header">
+            <span class="category-label">Preference breakdown</span>
+
+            <button id="close-preference-detail"
+                class="close-btn"
+                aria-label="Close preference breakdown">
+                ×
+            </button>
+        </div>
+
+        <h2 id="preference-detail-title"></h2>
+
+        <div class="breakdown-current">
+            <span>Current weight</span>
+            <strong id="breakdown-value"></strong>
+        </div>
+
+        <div id="breakdown-content"></div>
+
+        <button id="breakdown-close-btn" class="secondary-btn">
+            Close
+        </button>
+
+    </dialog>
+
+    <div id="message" class="message" role="status"></div>
+
 </body>
 </html>
